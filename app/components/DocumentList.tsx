@@ -6,6 +6,18 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, FileText, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils"; // Assuming you have this utility
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import toast from "react-hot-toast";
 interface Document {
   id: string;
   filename: string;
@@ -62,14 +74,6 @@ const DocumentList: React.FC<DocumentListProps> = ({
   const handleDeleteDocument = async (documentId: string) => {
     if (!session?.user?.id || deletingDocId === documentId) return;
 
-    if (
-      !confirm(
-        "Are you sure you want to delete this document and its chat history?"
-      )
-    ) {
-      return;
-    }
-
     setDeletingDocId(documentId);
     try {
       const res = await fetch(`/api/documents/${documentId}`, {
@@ -88,7 +92,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
       }
 
       console.log(`Document ${documentId} deleted successfully.`);
-
+      toast.success("Successfully deleted document!");
       // Notify parent component that a document was deleted.
       // The parent's `handleDocumentChange(null)` will then trigger `refreshTrigger`
       // and also set `selectedDocumentId` to `null`.
@@ -102,6 +106,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Error deleting document:", error);
+      toast.error(`Failed to delete document: ${error.message}`);
       alert(`Failed to delete document: ${error.message}`);
     } finally {
       setDeletingDocId(null);
@@ -113,6 +118,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
       <h2 className="text-xl font-semibold mb-4 text-gray-800">
         Your Uploaded PDFs
       </h2>
+
       {loading ? (
         <div className="flex justify-center items-center h-full">
           <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
@@ -137,24 +143,47 @@ const DocumentList: React.FC<DocumentListProps> = ({
               >
                 <div className="flex items-center gap-3 flex-grow min-w-0">
                   <FileText className="w-5 h-5 flex-shrink-0" />
-                  <span className="font-medium truncate flex-grow">
+                  <span className="font-medium truncate flex-grow max-w-60">
                     {doc.filename}
                   </span>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent selecting document when deleting
-                    handleDeleteDocument(doc.id);
-                  }}
-                  className="ml-2 p-1 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-100 transition-colors duration-200 flex-shrink-0"
-                  disabled={deletingDocId === doc.id}
-                >
-                  {deletingDocId === doc.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger className="cursor-pointer p-2 rounded-full bg-gray-100">
+                    {deletingDocId === doc.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you sure want to delete?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete the file and remove all associated data from our
+                        servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="cursor-pointer">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        className="cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent selecting document when deleting
+                          handleDeleteDocument(doc.id);
+                        }}
+                      >
+                        <Trash2 />
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ))}
           </div>
