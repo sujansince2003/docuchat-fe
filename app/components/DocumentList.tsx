@@ -1,11 +1,11 @@
-// components/DocumentList.tsx
 "use client";
-import React, { useEffect, useState } from "react";
+
+import type React from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, FileText, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils"; // Assuming you have this utility
-
+import { Loader2, FileText, Trash2, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,25 +18,25 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import toast from "react-hot-toast";
+
 interface Document {
   id: string;
   filename: string;
-  uploadedAt: string; // ISO string
+  uploadedAt: string;
 }
 
 interface DocumentListProps {
   selectedDocumentId: string | null;
-  // ✨ CHANGED: onSelectDocument now accepts string OR null for deselection ✨
   onSelectDocument: (documentId: string | null) => void;
   onDocumentDeleted: (documentId: string) => void;
-  refreshTrigger: number; // ✨ ADDED: This prop is now part of the interface ✨
+  refreshTrigger: number;
 }
 
 const DocumentList: React.FC<DocumentListProps> = ({
   selectedDocumentId,
   onSelectDocument,
   onDocumentDeleted,
-  refreshTrigger, // ✨ DESTRUCTURED: The new prop is used here ✨
+  refreshTrigger,
 }) => {
   const { data: session } = useSession();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -66,8 +66,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
         setLoading(false);
       }
     }
-    // ✨ CHANGED: Added refreshTrigger to the dependency array ✨
-    // This ensures documents are re-fetched when the parent signals a change (upload/delete)
+
     fetchDocuments();
   }, [session?.user?.id, refreshTrigger]);
 
@@ -93,13 +92,8 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
       console.log(`Document ${documentId} deleted successfully.`);
       toast.success("Successfully deleted document!");
-      // Notify parent component that a document was deleted.
-      // The parent's `handleDocumentChange(null)` will then trigger `refreshTrigger`
-      // and also set `selectedDocumentId` to `null`.
       onDocumentDeleted(documentId);
 
-      // ✨ CHANGED: If the deleted document was the selected one, explicitly deselect it ✨
-      // This ensures the chat area clears if the active document is removed.
       if (selectedDocumentId === documentId) {
         onSelectDocument(null);
       }
@@ -113,20 +107,44 @@ const DocumentList: React.FC<DocumentListProps> = ({
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
-    <div className="w-full h-full flex flex-col p-4 bg-gray-100 rounded-lg shadow-inner">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">
-        Your Uploaded PDFs
-      </h2>
+    <div className="w-full h-full flex flex-col">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
+          <FileText className="h-5 w-5 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
+          Your PDFs
+        </h2>
+      </div>
 
       {loading ? (
         <div className="flex justify-center items-center h-full">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+          <div className="relative">
+            <div className="absolute inset-0 bg-blue-500 rounded-full blur-md opacity-20 animate-pulse"></div>
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600 relative z-10" />
+          </div>
         </div>
       ) : documents.length === 0 ? (
-        <p className="text-gray-500 text-center mt-8">
-          No PDFs uploaded yet. Upload one!
-        </p>
+        <div className="flex flex-col items-center justify-center h-full text-center p-8">
+          <div className="p-4 bg-slate-100 rounded-2xl mb-4">
+            <FileText className="h-12 w-12 text-slate-400" />
+          </div>
+          <p className="text-slate-500 text-lg font-medium mb-2">No PDFs yet</p>
+          <p className="text-slate-400 text-sm">
+            Upload your first PDF to get started!
+          </p>
+        </div>
       ) : (
         <ScrollArea className="flex-1 pr-2">
           <div className="space-y-3">
@@ -134,51 +152,75 @@ const DocumentList: React.FC<DocumentListProps> = ({
               <div
                 key={doc.id}
                 className={cn(
-                  "flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors duration-200",
+                  "group relative flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-200 border",
                   selectedDocumentId === doc.id
-                    ? "bg-blue-100 text-blue-800 shadow-md border border-blue-300"
-                    : "bg-white hover:bg-gray-50 shadow-sm border border-gray-200"
+                    ? "bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow-lg ring-1 ring-blue-200"
+                    : "bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 hover:shadow-md"
                 )}
                 onClick={() => onSelectDocument(doc.id)}
               >
-                <div className="flex items-center gap-3 flex-grow min-w-0">
-                  <FileText className="w-5 h-5 flex-shrink-0" />
-                  <span className="font-medium truncate flex-grow max-w-60">
-                    {doc.filename}
-                  </span>
+                {/* Selection indicator */}
+                {selectedDocumentId === doc.id && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-r-full"></div>
+                )}
+
+                <div className="flex items-center gap-4 flex-grow min-w-0">
+                  <div
+                    className={cn(
+                      "p-3 rounded-xl transition-colors",
+                      selectedDocumentId === doc.id
+                        ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                        : "bg-slate-100 text-slate-600 group-hover:bg-slate-200"
+                    )}
+                  >
+                    <FileText className="w-5 h-5" />
+                  </div>
+
+                  <div className="flex-grow min-w-0">
+                    <h3 className="font-semibold text-slate-800 truncate text-sm mb-1">
+                      {doc.filename}
+                    </h3>
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                      <Clock className="w-3 h-3" />
+                      <span>{formatDate(doc.uploadedAt)}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <AlertDialog>
-                  <AlertDialogTrigger className="cursor-pointer p-2 rounded-full bg-gray-100">
+                  <AlertDialogTrigger className="p-2 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100">
                     {deletingDocId === doc.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Trash2 className="h-4 w-4" />
                     )}
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="rounded-2xl">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Are you sure want to delete?
+                      <AlertDialogTitle className="flex items-center gap-2">
+                        <div className="p-2 bg-red-100 rounded-xl">
+                          <Trash2 className="h-5 w-5 text-red-600" />
+                        </div>
+                        Delete PDF?
                       </AlertDialogTitle>
-                      <AlertDialogDescription>
+                      <AlertDialogDescription className="text-slate-600">
                         This action cannot be undone. This will permanently
-                        delete the file and remove all associated data from our
-                        servers.
+                        delete &quot;{doc.filename}&quot; and remove all
+                        associated chat history from our servers.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="cursor-pointer">
+                      <AlertDialogCancel className="rounded-xl">
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction
-                        className="cursor-pointer"
+                        className="bg-red-600 hover:bg-red-700 rounded-xl"
                         onClick={(e) => {
-                          e.stopPropagation(); // Prevent selecting document when deleting
+                          e.stopPropagation();
                           handleDeleteDocument(doc.id);
                         }}
                       >
-                        <Trash2 />
+                        <Trash2 className="h-4 w-4 mr-2" />
                         Delete
                       </AlertDialogAction>
                     </AlertDialogFooter>
