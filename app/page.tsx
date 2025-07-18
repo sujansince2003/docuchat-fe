@@ -1,8 +1,6 @@
-// app/page.tsx
-"use client"; // This is a client component as it uses hooks and state
+"use client";
 
-// Import the new DocumentList component
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import DocumentList from "./components/DocumentList";
 import FileUpload from "./components/FileUpload";
 import AuthWrapper from "./components/AuthWrapper";
@@ -12,16 +10,15 @@ export default function HomePage() {
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
     null
   );
-  const [refreshDocsTrigger, setRefreshDocsTrigger] = useState(0); // State to trigger document list refresh
+  const [refreshDocsTrigger, setRefreshDocsTrigger] = useState(0);
 
-  // Callback to refresh document list after upload or deletion
   const handleDocumentChange = useCallback(
     (documentId: string | null = null) => {
-      setRefreshDocsTrigger((prev) => prev + 1); // Increment to trigger useEffect in DocumentList
+      setRefreshDocsTrigger((prev) => prev + 1);
       if (documentId) {
-        setSelectedDocumentId(documentId); // Select the newly uploaded document
+        setSelectedDocumentId(documentId);
       } else {
-        setSelectedDocumentId(null); // Deselect if no document ID is passed (e.g., on deletion)
+        setSelectedDocumentId(null);
       }
     },
     []
@@ -29,30 +26,26 @@ export default function HomePage() {
 
   return (
     <AuthWrapper>
-      <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
-        {/* Left Sidebar for File Upload and Document List */}
-        <div className="lg:w-40%] min-h-[30vh] lg:min-h-screen flex flex-col p-4 border-b-2 lg:border-r-2 lg:border-b-0">
-          <div className="mb-4 h-1/3">
-            {" "}
-            {/* Allocate space for FileUpload */}
+      <div className="min-h-screen flex flex-col lg:flex-row bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        {/* Left Sidebar - Modern Glass Effect */}
+        <div className="lg:w-[40%] min-h-[30vh] lg:min-h-screen flex flex-col p-6 backdrop-blur-sm bg-white/70 border-r border-white/20 shadow-xl">
+          <div className="mb-6 h-1/3">
             <FileUpload
               onDocumentUploaded={(docId) => handleDocumentChange(docId)}
             />
           </div>
           <div className="flex-1">
-            {" "}
-            {/* Allocate remaining space for DocumentList */}
             <DocumentList
               selectedDocumentId={selectedDocumentId}
               onSelectDocument={setSelectedDocumentId}
-              onDocumentDeleted={() => handleDocumentChange(null)} // Refresh and deselect on delete
-              refreshTrigger={refreshDocsTrigger} // Pass trigger to DocumentList
+              onDocumentDeleted={() => handleDocumentChange(null)}
+              refreshTrigger={refreshDocsTrigger}
             />
           </div>
         </div>
 
-        {/* Right Section for Chat */}
-        <div className="lg:w-[70%] min-h-[70vh] lg:min-h-screen border-l-0 lg:border-l-2 border-t-2 lg:border-t-0 relative bg-white">
+        {/* Right Section - Modern Chat Area */}
+        <div className="lg:w-[60%] min-h-[70vh] lg:min-h-screen relative bg-gradient-to-br from-white to-slate-50">
           <Chat selectedDocumentId={selectedDocumentId} />
         </div>
       </div>
