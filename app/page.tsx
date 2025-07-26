@@ -44,7 +44,6 @@ export default function HomePage() {
   return (
     <AuthWrapper>
       <div className="flex h-screen bg-gray-50 font-sans text-gray-900 overflow-hidden">
-        {/* Sidebar Backdrop (Mobile Only) */}
         {sidebarOpen && isMobile && (
           <div
             className="fixed inset-0 bg-black/50 z-20 md:hidden"
@@ -67,7 +66,6 @@ export default function HomePage() {
           `}
         >
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Header */}
             <div className="p-4 border-b border-gray-200 flex-shrink-0">
               <div
                 className={`flex items-center ${
@@ -78,15 +76,7 @@ export default function HomePage() {
                   <>
                     <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-0">
                       {sidebarOpen ? (
-                        <>
-                          {/* Reference the video from the public directory */}
-                          {/* <VideoLogo
-                            src="/docu.mp4"
-                            alt="DocuChat Logo"
-                            className="flex-shrink-0 h-[70px] w-[140px]  "
-                          /> */}
-                          DocuChat
-                        </>
+                        <>DocuChat</>
                       ) : (
                         <Bot className="h-5 w-5 text-blue-500" />
                       )}
@@ -108,7 +98,6 @@ export default function HomePage() {
                 )}
               </div>
 
-              {/* File Upload Section - Only shown when expanded */}
               {sidebarOpen && (
                 <div className="mt-4">
                   <FileUpload
@@ -118,7 +107,6 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Documents List */}
             <div className="flex-1 overflow-hidden">
               {sidebarOpen ? (
                 <>
@@ -148,7 +136,6 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* User Profile */}
             {session?.user && (
               <div className="p-3 border-t border-gray-200 flex-shrink-0">
                 {sidebarOpen ? (
