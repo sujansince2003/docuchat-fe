@@ -27,7 +27,13 @@ export default function Example() {
           className="flex items-center justify-between p-6 lg:px-8"
         >
           <div className="flex lg:flex-1  ">
-            <Image src={"/docuchat.png"} alt="logo" width={60} height={100} />
+            <Image
+              alt="DocuChat Logo"
+              src="/docuchat.png"
+              className=" h-10 w-auto"
+              width={48}
+              height={48}
+            />
           </div>
           <div className="flex lg:hidden">
             <button
