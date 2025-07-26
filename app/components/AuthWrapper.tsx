@@ -1,10 +1,7 @@
 "use client";
-
-import { useSession, signOut } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Loader2, LogOut } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Loader2 } from "lucide-react";
 import type React from "react";
-import Image from "next/image";
 import LandingPage from "./LandingPage";
 
 interface AuthWrapperProps {
@@ -12,7 +9,7 @@ interface AuthWrapperProps {
 }
 
 const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   if (status === "loading") {
     return (
@@ -28,40 +25,11 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
     );
   }
 
-  if (!session) {
+  if (status === "unauthenticated") {
     return <LandingPage />;
   }
 
-  return (
-    <>
-      <div className="absolute top-6 right-6 flex items-center gap-3 z-50 bg-white/80 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-white/20">
-        {session.user?.image && (
-          <Image
-            src={session.user.image || "/placeholder.svg"}
-            alt="User Avatar"
-            width={40}
-            height={40}
-            className="w-10 h-10 rounded-full ring-2 ring-blue-500/20"
-          />
-        )}
-        <div className="flex flex-col">
-          <span className="text-sm font-semibold text-slate-700">
-            {session.user?.name}
-          </span>
-          <span className="text-xs text-slate-500">{session.user?.email}</span>
-        </div>
-        <Button
-          onClick={() => signOut()}
-          variant="ghost"
-          size="sm"
-          className="text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
-      </div>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 export default AuthWrapper;
