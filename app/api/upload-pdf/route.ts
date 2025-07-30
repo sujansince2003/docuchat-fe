@@ -40,7 +40,10 @@ export async function POST(req: NextRequest) {
 
         const originalFilename = file.name || 'unnamed.pdf';
         const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${originalFilename}`;
-        const tempUploadsDir = path.join(process.cwd(), 'temp_uploads');
+        // const tempUploadsDir = path.join(process.cwd(), 'temp_uploads');
+        // const tempUploadsDir = '/tmp/temp_uploads'; // Works in Vercel & serverless
+        const tempUploadsDir = '/app/uploads/temp';
+
         tempFilePath = path.join(tempUploadsDir, uniqueFileName);
 
         await fsPromises.mkdir(tempUploadsDir, { recursive: true });
